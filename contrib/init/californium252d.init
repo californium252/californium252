@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#
+#  californium252d The californium252 core server.
+#
+#
+# chkconfig: 345 80 20
+# description: californium252d
+# processname: californium252d
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+# you can override defaults in /etc/sysconfig/californium252d, see below
+if [ -f /etc/sysconfig/californium252d ]; then
+        . /etc/sysconfig/californium252d
+fi
+
+RETVAL=0
+
+prog=californium252d
+# you can override the lockfile via CALIFORNIUMD_LOCKFILE in /etc/sysconfig/californium252d
+lockfile=${CALIFORNIUMD_LOCKFILE-/var/lock/subsys/californium252d}
+
+# californium252d defaults to /usr/bin/californium252d, override with CALIFORNIUMD_BIN
+californium252d=${CALIFORNIUMD_BIN-/usr/bin/californium252d}
+
+# californium252d opts default to -disablewallet, override with CALIFORNIUMD_OPTS
+californium252d_opts=${CALIFORNIUMD_OPTS--disablewallet}
+
+start() {
+    echo -n $"Starting $prog: "
+    daemon $DAEMONOPTS $californium252d $californium252d_opts
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $lockfile
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog -t600
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status $prog
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: service $prog {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
